@@ -1,0 +1,18 @@
+version: '3.9'
+
+services:
+  db:
+    container_name: ffs-db
+    image: postgres:15
+    restart: always
+    volumes:
+      - ffs-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ffs
+      POSTGRES_USER: ffs-admin
+      POSTGRES_PASSWORD: successffs123
+    ports:
+      - "5434:5432"
+
+volumes:
+  ffs-db:
