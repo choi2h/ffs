@@ -5,6 +5,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, Sp
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("users/", include('apps.users.urls')),
+    path("branches/", include('apps.branches.urls')),
 
     # API 스키마 & 문서
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
