@@ -1,13 +1,13 @@
 from django.contrib import admin
-from django.urls import path
-from ninja import NinjaAPI
-
-from apps.users.urls import router as user_router
-
-base_api = NinjaAPI(title="FFS", version="0.0.0")
-base_api.add_router("users", user_router)
+from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 urlpatterns = [
-    path("", base_api.urls),
     path('admin/', admin.site.urls),
+    path("users/", include('apps.users.urls')),
+
+    # API 스키마 & 문서
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
 ]

@@ -1,37 +1,33 @@
-from django.contrib.auth import authenticate
+import logging
+from django.contrib.auth.hashers import check_password
 
+from apps.users.authentication import AuthenticationService
 from apps.users.exceptions import UserNotFoundException, InvalidLoginException
-from apps.users.request import JoinUserRequest, LoginUserRequest
-
 from apps.users.models import ServiceUser
-from apps.users.response import UserDetailResponse
+import apps.users.serializer as serializers
 
+logger = logging.getLogger('django.logger')
 
-def signup_user(request: JoinUserRequest):
-    user = ServiceUser.objects.create_user(
-        name=request.name,
-        email=request.email,
-        password=request.password,
-        birth=request.birth,
-        gender=request.gender,
-        phone=request.phone,
-    )
+def signup_user(serializer: serializers.SignupSerializer):
+    return serializer.save()
 
-    user.save()
-    return user
+def login_user(serializer: serializers.LoginUserSerializer):
+    logger.debug("Login user. input={}".format(serializer.data['email']))
 
-def login_user(request: LoginUserRequest):
-    user = authenticate(email=request.email, password=request.password)
-
-    if user is None:
+    try:
+        user = ServiceUser.objects.get(email=serializer.data['email'])
+    except ServiceUser.DoesNotExist:
         raise InvalidLoginException()
 
-    return user
+    if not check_password(serializer.data['password'], user.password):
+        raise InvalidLoginException()
+
+    return AuthenticationService.get_token(user)
 
 def get_user_detail(user_id: int):
     try:
         user = ServiceUser.objects.get(id=user_id)
     except ServiceUser.DoesNotExist:
-        raise UserNotFoundException("회원 정보를 찾을 수 없습니다.")
+        raise UserNotFoundException()
 
-    return UserDetailResponse.from_orm(user)
+    return serializers.UserDetailSerializer(user)

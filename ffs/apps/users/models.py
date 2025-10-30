@@ -26,7 +26,6 @@ class ServiceUserManager(BaseUserManager):
             name = name,
             gender = gender,
             phone = extra_fields.pop('phone', None),
-            role = extra_fields.pop('role', None),
         )
 
         user.set_password(password)
