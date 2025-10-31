@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.users.models import ServiceUser
+from apps.users.models import ServiceUser, UserBranchMembership
 from config.validator import validate_password, validate_phone_number
 
 class SignupSerializer(serializers.ModelSerializer):
@@ -36,3 +36,23 @@ class UserDetailSerializer(serializers. ModelSerializer):
         model = ServiceUser
         fields = ['id', 'email', 'name',
                   'gender', 'phone', 'created_at', 'updated_at']
+
+class MembershipRegisterSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    branch_id = serializers.IntegerField()
+    role = serializers.CharField()
+
+
+class MembershipBranchSerializer(serializers.ModelSerializer):
+    branch_id = serializers.IntegerField(source='branch.id')
+    branch_name = serializers.CharField(source='branch.name')
+
+    class Meta:
+        model = UserBranchMembership
+        fields = ['id', 'branch_id', 'branch_name', 'role']
+        read_only_fields = ['id', 'branch_id', 'branch_name', 'role']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['role'] = instance.get_role_display()
+        return data

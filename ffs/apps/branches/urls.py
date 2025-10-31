@@ -4,5 +4,5 @@ from apps.branches import views
 
 urlpatterns = [
     path("", views.BranchListCreateView.as_view(), name="branch-list"),
-    path("<int:pk>/", views.DetailBranchView.as_view(), name="branch-detail"),
+    path("<int:pk>/", views.BranchDetailView.as_view(), name="branch-detail"),
 ]

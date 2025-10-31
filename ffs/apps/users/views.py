@@ -4,13 +4,14 @@ from rest_framework.response import Response
 
 import apps.users.serializer as serializers
 
-from rest_framework.generics import CreateAPIView, GenericAPIView, RetrieveAPIView, ListAPIView
+from rest_framework.generics import CreateAPIView, GenericAPIView, \
+    RetrieveAPIView, ListAPIView, ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from apps.users.exceptions import InvalidLoginException
-from apps.users.models import ServiceUser
-from apps.users.services import signup_user, login_user
+from apps.users.models import ServiceUser, UserBranchMembership
+from apps.users.services import signup_user, login_user, add_membership, get_memberships
 
 """ POST 회원 가입 """
 class UserSignupView(CreateAPIView):
@@ -49,5 +50,29 @@ class UserDetailView(RetrieveAPIView):
     serializer_class = serializers.UserDetailSerializer
     permission_classes = [IsAuthenticated] # 인증된 유저만 호출
     authentication_classes = [JWTAuthentication]
+
+""" 멤버십 """
+class MembershipRegisterView(ListCreateAPIView):
+    serializer_class = serializers.MembershipRegisterSerializer
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return serializers.MembershipRegisterSerializer
+        elif self.request.method == 'GET':
+            return serializers.MembershipBranchSerializer
+        return None
+
+    """ POST 멤버십 추가 """
+    def perform_create(self, serializer):
+        add_membership(serializer)
+
+    """ GET 멤버십 조회 """
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        memberships = get_memberships(user)
+        serializer = serializers.MembershipBranchSerializer(memberships, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 

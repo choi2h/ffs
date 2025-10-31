@@ -9,10 +9,17 @@ class Gender(models.TextChoices):
     FEMALE = 'female'
 
 class Role(models.TextChoices):
-    PLATFORM_ADMIN = 'platform_admin'
-    BRANCH_ADMIN = 'branch_admin'
-    TRAINER = 'trainer'
-    MEMBER = 'member'
+    PLATFORM_ADMIN = 'platform_admin', '전체 관리자'
+    BRANCH_ADMIN = 'branch_admin', '지점 관리자'
+    TRAINER = 'trainer', '트레이너'
+    MEMBER = 'member', '회원'
+
+class MatchingStatus(models.TextChoices):
+    PENDING = 'PENDING', '대기중'
+    ACTIVE = 'ACTIVE', '매칭중'
+    REJECTED = 'REJECTED', '거절',
+    DISCONNECTED = 'DISCONNECTED', '매칭종료'
+
 
 class ServiceUserManager(BaseUserManager):
     def create_user(self, email: str, name: str, birth: date, gender: Gender,
@@ -76,7 +83,7 @@ class UserBranchMembership(models.Model):
     branch = models.ForeignKey('branches.Branch', on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
-    role = models.CharField(choices=Role.choices,
+    role = models.CharField(max_length=15, choices=Role.choices,
                             default=Role.MEMBER)
 
     class Meta:
@@ -84,6 +91,15 @@ class UserBranchMembership(models.Model):
         ordering = ['-joined_at']
         app_label = 'users'
         db_table = 'membership'
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(
+                    user_id=models.F('branch__owner_id'),
+                    role='branch_admin'
+                ) | ~models.Q(role='branch_admin'),
+                name='admin_must_be_owner'
+            )
+        ]
 
 class Matching(models.Model):
     member = models.ForeignKey(ServiceUser, on_delete=models.CASCADE,
@@ -91,9 +107,10 @@ class Matching(models.Model):
     trainer = models.ForeignKey(ServiceUser, on_delete=models.CASCADE,
                                 related_name='trainer')
     branch = models.ForeignKey('branches.Branch', on_delete=models.CASCADE)
+    status = models.CharField(max_length=15, choices=MatchingStatus.choices,)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['member', 'trainer']
+        unique_together = ['member', 'trainer', 'branch']
         app_label = 'users'
         db_table = 'matching'

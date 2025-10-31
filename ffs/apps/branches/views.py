@@ -4,8 +4,12 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from apps.branches.models import Branch
 from apps.branches.serializer import BranchSerializer
-from apps.branches.service import addBranch
+from apps.branches.service import add_branch
 
+""" 
+POST 지점 등록
+GET 지점 목록 조회
+"""
 class BranchListCreateView(ListCreateAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
@@ -14,12 +18,11 @@ class BranchListCreateView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         user_id = self.request.user.id
-        addBranch(user_id, serializer)
+        add_branch(user_id, serializer)
 
-class DetailBranchView(RetrieveAPIView):
+""" GET 단일 지점 조회"""
+class BranchDetailView(RetrieveAPIView):
     queryset = Branch.objects.all()
     serializer_class = BranchSerializer
     permission_classes = [IsAuthenticated,]
     authentication_classes = [JWTAuthentication, ]
-
-

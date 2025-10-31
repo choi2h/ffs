@@ -10,4 +10,7 @@ urlpatterns = [
     path("signup/", views.UserSignupView.as_view(), name="user-signup"),
     # POST 로그인
     path("login/", views.UserLoginView.as_view(), name="user-login"),
+
+    # POST 멤버십 추가
+    path("membership/", views.MembershipRegisterView.as_view(), name="membership-register"),
 ]
